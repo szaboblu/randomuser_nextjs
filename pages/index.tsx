@@ -31,16 +31,7 @@ export default function Home() {
       <Container className={styles.main}>
         <GenderForm onFilterChange={onFilterChange} filter={filter} />
         <Paginator filter={filter} onPageChange={onPageChange} />
-        <Container
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
-            gridRowGap: "1rem",
-            gridColumnGap: "1rem",
-          }}
-        >
-          {renderContent()}
-        </Container>
+        <Container className={styles.grid}>{renderContent()}</Container>
       </Container>
     </Container>
   );

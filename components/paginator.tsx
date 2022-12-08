@@ -1,6 +1,6 @@
 import { Pagination, PaginationItem } from "@mui/material";
 import { IFilter } from "../ts";
-
+import styles from "../styles/Paginator.module.css";
 export function Paginator({
   filter,
   onPageChange,
@@ -17,10 +17,7 @@ export function Paginator({
       page={filter.page}
       onChange={(_, pageNumber) => onPageChange(pageNumber)}
       renderItem={(props) => (
-        <PaginationItem
-          sx={{ margin: "1rem", borderColor: "white", color: "white" }}
-          {...props}
-        />
+        <PaginationItem className={styles.paginatorItem} {...props} />
       )}
     />
   );

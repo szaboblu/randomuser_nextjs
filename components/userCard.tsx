@@ -1,59 +1,30 @@
 import { Card, Box, CardMedia, CardContent, Typography } from "@mui/material";
 import Image from "next/image";
+import styles from "../styles/UserCard.module.css";
 import { IUser } from "../ts";
 
+import { COLORS } from "../constants/colors";
+
 export function UserCard({ user }: { user: IUser }) {
+  const color = user.gender === "male" ? COLORS.blue : COLORS.pink;
   return (
-    <Card
-      sx={{
-        minWidth: "12rem",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "1rem",
-      }}
-    >
-      <Box
-        style={{
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
+    <Card className={styles.card}>
+      <Box className={styles.cardContent}>
         <CardMedia
+          className={styles.imageContainer}
           style={{
-            position: "relative",
-            width: "8rem",
-            height: "8rem",
-            backgroundColor: "black",
-            borderRadius: "100%",
-            overflow: "hidden",
-            margin: "auto",
-            border: `2px solid ${
-              user.gender === "male" ? "lightblue" : "pink"
-            }`,
-            justifyContent: "center",
-            alignItems: "center",
-            boxShadow: `0 0 12px 3px ${
-              user.gender === "male" ? "lightblue" : "pink"
-            }`,
+            border: `2px solid ${color}`,
+            boxShadow: `0 0 12px 3px ${color}`,
           }}
         >
           <Image
             src={user.picture}
             alt={user.name}
-            style={{
-              width: "100%",
-              objectFit: "cover",
-              margin: "auto",
-              boxShadow: "0 0 12px 10px rgba(0, 0, 0, 0.08)",
-            }}
-            sizes="100%"
+            className={styles.image}
             fill
           />
         </CardMedia>
-        <CardContent>
+        <CardContent className={styles.text}>
           <Typography
             sx={{ fontSize: "large", textAlign: "center" }}
             color="text.primary"
@@ -67,7 +38,7 @@ export function UserCard({ user }: { user: IUser }) {
             {user.city}
           </Typography>
         </CardContent>
-        <CardContent>
+        <CardContent className={styles.text}>
           <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
             {user.email}
           </Typography>

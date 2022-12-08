@@ -5,6 +5,7 @@ import {
   Checkbox,
 } from "@mui/material";
 import { IFilter } from "../ts";
+import styles from "../styles/GenderForm.module.css";
 
 export function GenderForm({
   filter,
@@ -14,7 +15,7 @@ export function GenderForm({
   onFilterChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }) {
   return (
-    <Container sx={{ display: "flex", alignItems: "stretch" }}>
+    <Container className={styles.container}>
       <FormGroup>
         <FormControlLabel
           control={
