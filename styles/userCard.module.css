@@ -9,13 +9,11 @@
 }
 
 .cardContent {
-    justify-content: center;
-    align-items: center;
+    display: grid;
 }
 
 .imageContainer {
-    position: absolute;
-    top: 3rem;
+    position: relative;
     width: 8rem;
     height: 8rem;
     border-radius: 50%;
