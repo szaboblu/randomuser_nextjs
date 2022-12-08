@@ -3,11 +3,29 @@ import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import axios from "axios";
 import { useQuery } from "react-query";
-import { Box, Card, CardContent, CardMedia, Typography } from "@mui/material";
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  CardMedia,
+  Container,
+  FormControlLabel,
+  FormGroup,
+  Pagination,
+  PaginationItem,
+  Switch,
+  Typography,
+} from "@mui/material";
+import { useMemo, useState } from "react";
 
 export default function Home() {
+  const [isMale, setIsMale] = useState<boolean>(true);
+  const [isFemale, setIsFemale] = useState<boolean>(true);
+  const [page, setPage] = useState<number>(0);
+
   //get users from randomuser.me using axios and react-query
-  const { isLoading, error, data } = useQuery(
+  const { isLoading, error, data } = useQuery<boolean, Error>(
     "fetchUsers",
     () =>
       axios
@@ -20,15 +38,31 @@ export default function Home() {
     { staleTime: Infinity }
   );
 
+  const filteredData = useMemo(
+    () => filterData(data),
+    [isFemale, isMale, page]
+  );
+
+  function filterData(data = []) {
+    let nextPage: any[] = [
+      ...data.filter((user: any) => {
+        const gender = user.gender;
+        if ((isFemale && gender === "female") || (isMale && gender === "male"))
+          return user;
+      }),
+    ];
+
+    return nextPage.slice(page * 10, page * 10 + 10);
+  }
   // check number is prime
-  const isPrime = (num: number) => {
+  function isPrime(num: number) {
     for (let i = 2, s = Math.sqrt(num); i <= s; i++)
       if (num % i === 0) return false;
     return num > 1;
-  };
+  }
 
   // check string contains at least X prime numbers
-  const hasPrimes = (postcode: string | number, cap: number) => {
+  function hasPrimes(postcode: string | number, cap: number) {
     const postcodeString = postcode.toString();
     const numberString = postcodeString.match(/\d+/g)?.join("");
     let count = 0;
@@ -40,101 +74,139 @@ export default function Home() {
       });
     }
     return count >= cap;
-  };
+  }
 
-  const renderUsers = () => {
+  function renderUsers() {
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Error :(</p>;
-    return data.slice(0, 10).map((user: any) => (
-      <Card
-        key={user.login.uuid}
-        sx={{
-          minWidth: "12rem",
-          boxShadow:
-            "0 0.5em 1em -0.125em hsl(0deg 0% 4% / 10%), 0 0 0 1px hsl(0deg 0% 4% / 2%)",
-          border: "1px solid #e9eaee",
-          display: "flex",
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-          padding: "1rem",
-        }}
-      >
-        <Box
-          style={{
+    if (filteredData)
+      return filteredData.slice(0, 10).map((user: any) => (
+        <Card
+          key={user.login.uuid}
+          sx={{
+            minWidth: "12rem",
+            display: "flex",
             flexDirection: "column",
             justifyContent: "center",
             alignItems: "center",
+            padding: "1rem",
           }}
         >
-          <CardMedia
+          <Box
             style={{
-              position: "relative",
-              width: "10rem",
-              height: "10rem",
-              backgroundColor: "black",
-              borderRadius: "100%",
-              overflow: "hidden",
-              margin: "auto",
-              border: `0.5rem solid ${
-                user.gender === "male" ? "lightblue" : "pink"
-              }`,
+              flexDirection: "column",
               justifyContent: "center",
               alignItems: "center",
-              boxShadow:
-                "0 0.5em 1em -0.125em hsl(0deg 0% 4% / 10%), 0 0 0 1px hsl(0deg 0% 4% / 2%)",
             }}
           >
-            <Image
-              src={user.picture.large}
-              alt={user.name.first}
+            <CardMedia
               style={{
-                width: "100%",
-                objectFit: "cover",
+                position: "relative",
+                width: "8rem",
+                height: "8rem",
+                backgroundColor: "black",
+                borderRadius: "100%",
+                overflow: "hidden",
                 margin: "auto",
+                border: `2px solid ${
+                  user.gender === "male" ? "lightblue" : "pink"
+                }`,
+                justifyContent: "center",
+                alignItems: "center",
+                boxShadow: `0 0 12px 3px ${
+                  user.gender === "male" ? "lightblue" : "pink"
+                }`,
               }}
-              sizes="100%"
-              fill
-            />
-          </CardMedia>
-          <CardContent>
-            <Typography
-              sx={{ fontSize: "large", textAlign: "center" }}
-              color="text.primary"
             >
-              {user.name.first} {user.name.last}
-            </Typography>
-            <Typography sx={{ textAlign: "center" }} color="text.secondary">
-              {user.dob.age}
-            </Typography>
-            <Typography sx={{ textAlign: "center" }} color="text.secondary">
-              {user.location.city}
-            </Typography>
-          </CardContent>
-          <CardContent>
-            <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
-              {user.email}
-            </Typography>
-            <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
-              phone: {user.phone}
-            </Typography>
-          </CardContent>
-        </Box>
-      </Card>
-    ));
-  };
+              <Image
+                src={user.picture.large}
+                alt={user.name.first}
+                style={{
+                  width: "100%",
+                  objectFit: "cover",
+                  margin: "auto",
+                  boxShadow: "0 0 12px 10px rgba(0, 0, 0, 0.08)",
+                }}
+                sizes="100%"
+                fill
+              />
+            </CardMedia>
+            <CardContent>
+              <Typography
+                sx={{ fontSize: "large", textAlign: "center" }}
+                color="text.primary"
+              >
+                {user.name.first} {user.name.last}
+              </Typography>
+              <Typography sx={{ textAlign: "center" }} color="text.secondary">
+                {user.dob.age}
+              </Typography>
+              <Typography sx={{ textAlign: "center" }} color="text.secondary">
+                {user.location.city}
+              </Typography>
+            </CardContent>
+            <CardContent>
+              <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
+                {user.email}
+              </Typography>
+              <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
+                phone: {user.phone}
+              </Typography>
+            </CardContent>
+          </Box>
+        </Card>
+      ));
+  }
 
   return (
-    <div className={styles.container}>
+    <Container className={styles.container}>
       <Head>
         <title>Random User Generator</title>
         <meta name="description" content="Generated by create next app" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main className={styles.main}>
-        <h1 className={styles.title}>Random user generator</h1>
-        <div
+      <Container className={styles.main}>
+        <Container sx={{ display: "flex", alignItems: "stretch" }}>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isMale}
+                  onChange={(e) => setIsMale(e.target.checked)}
+                />
+              }
+              label="Male"
+            />
+          </FormGroup>
+          <FormGroup>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isFemale}
+                  onChange={(e) => setIsFemale(e.target.checked)}
+                />
+              }
+              label="Female"
+            />
+          </FormGroup>
+        </Container>
+
+        <Pagination
+          count={10}
+          variant="outlined"
+          size="large"
+          color="primary"
+          page={page}
+          onChange={(_, pageNumber) => setPage(pageNumber)}
+          renderItem={(props) => (
+            <PaginationItem
+              sx={{ margin: "1rem", borderColor: "white", color: "white" }}
+              {...props}
+            />
+          )}
+        ></Pagination>
+        <Container
           style={{
             display: "grid",
             gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
@@ -143,8 +215,8 @@ export default function Home() {
           }}
         >
           {renderUsers()}
-        </div>
-      </main>
-    </div>
+        </Container>
+      </Container>
+    </Container>
   );
 }
