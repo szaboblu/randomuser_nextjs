@@ -1,18 +1,23 @@
 import Head from "next/head";
+import Image from "next/image";
 import styles from "../styles/Home.module.css";
 import axios from "axios";
 import { useQuery } from "react-query";
+import { Box, Card, CardContent, CardMedia, Typography } from "@mui/material";
 
 export default function Home() {
   //get users from randomuser.me using axios and react-query
-  const { isLoading, error, data } = useQuery(["fetchUsers"], () =>
-    axios
-      .get("https://randomuser.me/api/?results=500")
-      .then((res) =>
-        res.data.results.filter((user: any) =>
-          hasPrimes(user.location.postcode, 2)
-        )
-      )
+  const { isLoading, error, data } = useQuery(
+    "fetchUsers",
+    () =>
+      axios
+        .get("https://randomuser.me/api/?results=500")
+        .then((res) =>
+          res.data.results.filter((user: any) =>
+            hasPrimes(user.location.postcode, 2)
+          )
+        ),
+    { staleTime: Infinity }
   );
 
   // check number is prime
@@ -37,6 +42,88 @@ export default function Home() {
     return count >= cap;
   };
 
+  const renderUsers = () => {
+    if (isLoading) return <p>Loading...</p>;
+    if (error) return <p>Error :(</p>;
+    return data.slice(0, 10).map((user: any) => (
+      <Card
+        key={user.login.uuid}
+        sx={{
+          minWidth: "12rem",
+          boxShadow:
+            "0 0.5em 1em -0.125em hsl(0deg 0% 4% / 10%), 0 0 0 1px hsl(0deg 0% 4% / 2%)",
+          border: "1px solid #e9eaee",
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+          padding: "1rem",
+        }}
+      >
+        <Box
+          style={{
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <CardMedia
+            style={{
+              position: "relative",
+              width: "10rem",
+              height: "10rem",
+              backgroundColor: "black",
+              borderRadius: "100%",
+              overflow: "hidden",
+              margin: "auto",
+              border: `0.5rem solid ${
+                user.gender === "male" ? "lightblue" : "pink"
+              }`,
+              justifyContent: "center",
+              alignItems: "center",
+              boxShadow:
+                "0 0.5em 1em -0.125em hsl(0deg 0% 4% / 10%), 0 0 0 1px hsl(0deg 0% 4% / 2%)",
+            }}
+          >
+            <Image
+              src={user.picture.large}
+              alt={user.name.first}
+              style={{
+                width: "100%",
+                objectFit: "cover",
+                margin: "auto",
+              }}
+              sizes="100%"
+              fill
+            />
+          </CardMedia>
+          <CardContent>
+            <Typography
+              sx={{ fontSize: "large", textAlign: "center" }}
+              color="text.primary"
+            >
+              {user.name.first} {user.name.last}
+            </Typography>
+            <Typography sx={{ textAlign: "center" }} color="text.secondary">
+              {user.dob.age}
+            </Typography>
+            <Typography sx={{ textAlign: "center" }} color="text.secondary">
+              {user.location.city}
+            </Typography>
+          </CardContent>
+          <CardContent>
+            <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
+              {user.email}
+            </Typography>
+            <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
+              phone: {user.phone}
+            </Typography>
+          </CardContent>
+        </Box>
+      </Card>
+    ));
+  };
+
   return (
     <div className={styles.container}>
       <Head>
@@ -47,6 +134,16 @@ export default function Home() {
 
       <main className={styles.main}>
         <h1 className={styles.title}>Random user generator</h1>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr 1fr 1fr 1fr",
+            gridRowGap: "1rem",
+            gridColumnGap: "1rem",
+          }}
+        >
+          {renderUsers()}
+        </div>
       </main>
     </div>
   );
