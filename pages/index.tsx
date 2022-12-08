@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardMedia,
+  Checkbox,
   Container,
   FormControlLabel,
   FormGroup,
@@ -17,72 +18,21 @@ import {
   Switch,
   Typography,
 } from "@mui/material";
-import { useMemo, useState } from "react";
+import { useFetchUsers, useFilteredUsers } from "../hooks";
+import { IUser } from "../ts";
 
 export default function Home() {
-  const [isMale, setIsMale] = useState<boolean>(true);
-  const [isFemale, setIsFemale] = useState<boolean>(true);
-  const [page, setPage] = useState<number>(0);
-
-  //get users from randomuser.me using axios and react-query
-  const { isLoading, error, data } = useQuery<boolean, Error>(
-    "fetchUsers",
-    () =>
-      axios
-        .get("https://randomuser.me/api/?results=500")
-        .then((res) =>
-          res.data.results.filter((user: any) =>
-            hasPrimes(user.location.postcode, 2)
-          )
-        ),
-    { staleTime: Infinity }
-  );
-
-  const filteredData = useMemo(
-    () => filterData(data),
-    [isFemale, isMale, page]
-  );
-
-  function filterData(data = []) {
-    let nextPage: any[] = [
-      ...data.filter((user: any) => {
-        const gender = user.gender;
-        if ((isFemale && gender === "female") || (isMale && gender === "male"))
-          return user;
-      }),
-    ];
-
-    return nextPage.slice(page * 10, page * 10 + 10);
-  }
-  // check number is prime
-  function isPrime(num: number) {
-    for (let i = 2, s = Math.sqrt(num); i <= s; i++)
-      if (num % i === 0) return false;
-    return num > 1;
-  }
-
-  // check string contains at least X prime numbers
-  function hasPrimes(postcode: string | number, cap: number) {
-    const postcodeString = postcode.toString();
-    const numberString = postcodeString.match(/\d+/g)?.join("");
-    let count = 0;
-    if (numberString) {
-      numberString.split("").forEach((number: string) => {
-        if (isPrime(parseInt(number))) {
-          count++;
-        }
-      });
-    }
-    return count >= cap;
-  }
+  const { isLoading, error, data } = useQuery("users", useFetchUsers);
+  const { filter, onPageChange, onFilterChange, filteredData } =
+    useFilteredUsers(data);
 
   function renderUsers() {
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Error :(</p>;
     if (filteredData)
-      return filteredData.slice(0, 10).map((user: any) => (
+      return filteredData.slice(0, 10).map((user: IUser) => (
         <Card
-          key={user.login.uuid}
+          key={user.id}
           sx={{
             minWidth: "12rem",
             display: "flex",
@@ -119,8 +69,8 @@ export default function Home() {
               }}
             >
               <Image
-                src={user.picture.large}
-                alt={user.name.first}
+                src={user.picture}
+                alt={user.name}
                 style={{
                   width: "100%",
                   objectFit: "cover",
@@ -136,13 +86,13 @@ export default function Home() {
                 sx={{ fontSize: "large", textAlign: "center" }}
                 color="text.primary"
               >
-                {user.name.first} {user.name.last}
+                {user.name} {user.surname}
               </Typography>
               <Typography sx={{ textAlign: "center" }} color="text.secondary">
-                {user.dob.age}
+                {user.age}
               </Typography>
               <Typography sx={{ textAlign: "center" }} color="text.secondary">
-                {user.location.city}
+                {user.city}
               </Typography>
             </CardContent>
             <CardContent>
@@ -171,9 +121,10 @@ export default function Home() {
           <FormGroup>
             <FormControlLabel
               control={
-                <Switch
-                  checked={isMale}
-                  onChange={(e) => setIsMale(e.target.checked)}
+                <Checkbox
+                  checked={filter.male}
+                  name="male"
+                  onChange={(e) => onFilterChange(e)}
                 />
               }
               label="Male"
@@ -182,9 +133,10 @@ export default function Home() {
           <FormGroup>
             <FormControlLabel
               control={
-                <Switch
-                  checked={isFemale}
-                  onChange={(e) => setIsFemale(e.target.checked)}
+                <Checkbox
+                  checked={filter.female}
+                  name="female"
+                  onChange={(e) => onFilterChange(e)}
                 />
               }
               label="Female"
@@ -197,8 +149,8 @@ export default function Home() {
           variant="outlined"
           size="large"
           color="primary"
-          page={page}
-          onChange={(_, pageNumber) => setPage(pageNumber)}
+          page={filter.page}
+          onChange={(_, pageNumber) => onPageChange(pageNumber)}
           renderItem={(props) => (
             <PaginationItem
               sx={{ margin: "1rem", borderColor: "white", color: "white" }}
