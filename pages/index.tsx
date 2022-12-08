@@ -1,111 +1,23 @@
 import Head from "next/head";
-import Image from "next/image";
 import styles from "../styles/Home.module.css";
-import axios from "axios";
 import { useQuery } from "react-query";
-import {
-  Box,
-  Button,
-  Card,
-  CardContent,
-  CardMedia,
-  Checkbox,
-  Container,
-  FormControlLabel,
-  FormGroup,
-  Pagination,
-  PaginationItem,
-  Switch,
-  Typography,
-} from "@mui/material";
+import { Container } from "@mui/material";
 import { useFetchUsers, useFilteredUsers } from "../hooks";
 import { IUser } from "../ts";
+import { GenderForm, Paginator, UserCard } from "../components";
 
 export default function Home() {
   const { isLoading, error, data } = useQuery("users", useFetchUsers);
   const { filter, onPageChange, onFilterChange, filteredData } =
     useFilteredUsers(data);
 
-  function renderUsers() {
+  function renderContent() {
     if (isLoading) return <p>Loading...</p>;
     if (error) return <p>Error :(</p>;
     if (filteredData)
-      return filteredData.slice(0, 10).map((user: IUser) => (
-        <Card
-          key={user.id}
-          sx={{
-            minWidth: "12rem",
-            display: "flex",
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-            padding: "1rem",
-          }}
-        >
-          <Box
-            style={{
-              flexDirection: "column",
-              justifyContent: "center",
-              alignItems: "center",
-            }}
-          >
-            <CardMedia
-              style={{
-                position: "relative",
-                width: "8rem",
-                height: "8rem",
-                backgroundColor: "black",
-                borderRadius: "100%",
-                overflow: "hidden",
-                margin: "auto",
-                border: `2px solid ${
-                  user.gender === "male" ? "lightblue" : "pink"
-                }`,
-                justifyContent: "center",
-                alignItems: "center",
-                boxShadow: `0 0 12px 3px ${
-                  user.gender === "male" ? "lightblue" : "pink"
-                }`,
-              }}
-            >
-              <Image
-                src={user.picture}
-                alt={user.name}
-                style={{
-                  width: "100%",
-                  objectFit: "cover",
-                  margin: "auto",
-                  boxShadow: "0 0 12px 10px rgba(0, 0, 0, 0.08)",
-                }}
-                sizes="100%"
-                fill
-              />
-            </CardMedia>
-            <CardContent>
-              <Typography
-                sx={{ fontSize: "large", textAlign: "center" }}
-                color="text.primary"
-              >
-                {user.name} {user.surname}
-              </Typography>
-              <Typography sx={{ textAlign: "center" }} color="text.secondary">
-                {user.age}
-              </Typography>
-              <Typography sx={{ textAlign: "center" }} color="text.secondary">
-                {user.city}
-              </Typography>
-            </CardContent>
-            <CardContent>
-              <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
-                {user.email}
-              </Typography>
-              <Typography sx={{ fontSize: "0.8rem" }} color="text.secondary">
-                phone: {user.phone}
-              </Typography>
-            </CardContent>
-          </Box>
-        </Card>
-      ));
+      return filteredData
+        .slice(0, 10)
+        .map((user: IUser) => <UserCard key={user.id} user={user} />);
   }
 
   return (
@@ -117,47 +29,8 @@ export default function Home() {
       </Head>
 
       <Container className={styles.main}>
-        <Container sx={{ display: "flex", alignItems: "stretch" }}>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={filter.male}
-                  name="male"
-                  onChange={(e) => onFilterChange(e)}
-                />
-              }
-              label="Male"
-            />
-          </FormGroup>
-          <FormGroup>
-            <FormControlLabel
-              control={
-                <Checkbox
-                  checked={filter.female}
-                  name="female"
-                  onChange={(e) => onFilterChange(e)}
-                />
-              }
-              label="Female"
-            />
-          </FormGroup>
-        </Container>
-
-        <Pagination
-          count={10}
-          variant="outlined"
-          size="large"
-          color="primary"
-          page={filter.page}
-          onChange={(_, pageNumber) => onPageChange(pageNumber)}
-          renderItem={(props) => (
-            <PaginationItem
-              sx={{ margin: "1rem", borderColor: "white", color: "white" }}
-              {...props}
-            />
-          )}
-        ></Pagination>
+        <GenderForm onFilterChange={onFilterChange} filter={filter} />
+        <Paginator filter={filter} onPageChange={onPageChange} />
         <Container
           style={{
             display: "grid",
@@ -166,7 +39,7 @@ export default function Home() {
             gridColumnGap: "1rem",
           }}
         >
-          {renderUsers()}
+          {renderContent()}
         </Container>
       </Container>
     </Container>
